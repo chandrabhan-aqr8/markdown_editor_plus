@@ -260,6 +260,8 @@ class _MarkdownAutoPreviewState extends State<MarkdownAutoPreview> {
       child: _focused
           ? _editorOnFocused()
           : GestureDetector(
+            behavior: HitTestBehavior
+                  .translucent,
               onTap: () {
                 // Bring widget in widget tree first
                 setState(() {

@@ -4,6 +4,61 @@ import '../src/toolbar.dart';
 import 'modal_select_emoji.dart';
 import 'modal_input_url.dart';
 import 'toolbar_item.dart';
+import 'package:flutter/gestures.dart';
+class DragScrollWrapper extends StatefulWidget {
+  final Widget child;
+  final Axis scrollDirection;
+
+  const DragScrollWrapper({
+    super.key,
+    required this.child,
+    this.scrollDirection = Axis.horizontal,
+  });
+
+  @override
+  State<DragScrollWrapper> createState() => _DragScrollWrapperState();
+}
+
+class _DragScrollWrapperState extends State<DragScrollWrapper> {
+  final ScrollController _controller = ScrollController();
+  Offset? _lastDragPos;
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerSignal: (event) {
+        if (event is PointerScrollEvent) {
+          final delta = widget.scrollDirection == Axis.horizontal
+              ? event.scrollDelta.dy
+              : event.scrollDelta.dx;
+
+          _controller.jumpTo(
+            _controller.offset + delta,
+          );
+        }
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragUpdate: widget.scrollDirection == Axis.horizontal
+            ? (details) => _controller.jumpTo(
+                  _controller.offset - details.delta.dx,
+                )
+            : null,
+        onVerticalDragUpdate: widget.scrollDirection == Axis.vertical
+            ? (details) => _controller.jumpTo(
+                  _controller.offset - details.delta.dy,
+                )
+            : null,
+        child: SingleChildScrollView(
+          controller: _controller,
+          scrollDirection: widget.scrollDirection,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
 
 class MarkdownToolbar extends StatelessWidget {
   /// Preview/Eye button
@@ -42,7 +97,7 @@ class MarkdownToolbar extends StatelessWidget {
       color: toolbarBackground ?? Colors.grey[200],
       width: double.maxFinite,
       height: 45,
-      child: SingleChildScrollView(
+      child: DragScrollWrapper(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
